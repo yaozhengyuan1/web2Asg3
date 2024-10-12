@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Fundraisers Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 15px; }
+        nav a { margin-right: 13px; }
+        #results ul { list-style-type: none; padding: 0; }
+        #results li { margin: 4px 0; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Search Fundraisers</h1>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="search.html">Search Fundraisers</a>
+    </nav>
+</header>
+
+<section>
+    <form id="searchForm">
+        <label>Organizer: <input type="text" id="organizer" placeholder="Input organizer name"></label>
+        <label>City: <input type="text" id="city" placeholder="Input city"></label>
+        <label>Category:
+            <select id="category">
+                <option value="">Select Category</option>
+                <option value="1">Medical</option>
+                <option value="2">Education</option>
+                <option value="3">Social Impact</option>
+                <option value="4">Environment</option>
+                <option value="5">Community</option>
+            </select>
+        </label>
+        <button type="submit">Search</button>
+        <button type="button" onclick="clearChechboxes()">Clear</button>
+    </form>
+    <div id="results"></div>
+    <p>Coding by: zyao12 tyang15</p>
+</section>
+
+<script>
+    document.getElementById('searchForm').addEventListener('submit', function(event) {
+
+        const organizer = document.getElementById('organizer').value.trim();
+        const city = document.getElementById('city').value.trim();
+        const category = document.getElementById('category').value;
+
+        if (!organizer && !city && !category) {
+            alert("Please select at least one criterion!");
+            return;
+        }
+
+        const params = {};
+        if (organizer) params.organizer = organizer;
+        if (city) params.city = city;
+        if (category) params.category = category;
+
+        const query = new URLSearchParams(params).toString();
+
+        event.preventDefault();
+        fetch(`https://24274481.it.scu.edu.au/query?${query}`)
+            .then(response => response.json())
+            .then(data => {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = data.length === 0 ?
+                    '<strong style="color:red;">No fundraisers found</strong>' :
+                    `<ul>${data.map(fundraiser => `
+                    <li><strong>${fundraiser.CAPTION}</strong> -
+                    <a href="fundraiser.html?id=${fundraiser.FUNDRAISER_ID}">View Details</a></li>`).join('')}
+                </ul>`;
+            })
+            .catch(err => {
+                console.error('Fetch error:', err);
+                document.getElementById('results').innerHTML = '<strong style="color:red;">Error fetching results</strong>';
+            });
+    });
+
+    function clearChechboxes() {
+        document.getElementById('organizer').value = '';
+        document.getElementById('city').value = '';
+        document.getElementById('category').value = '';
+        document.getElementById('results').innerHTML = '';
+    }
+</script>
+
+</body>
+</html>
+
