@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        header { text-align: center; margin-bottom: 30px; }
+        section { margin-bottom: 20px; }
+        h2 { color: #007bff; }
+        #donationsList { list-style-type: none; padding: 0; }
+        #donationsList li { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        form { display: flex; flex-direction: column; max-width: 400px; margin: 0 auto; }
+        input, button { margin-top: 10px; padding: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Donation Page</h1>
+    <nav>
+        <a href="index.html">Home</a>
+    </nav>
+</header>
+
+<section id="fundraiserDetail"></section>
+<section>
+    <h3>Submit Your Donation</h3>
+    <form id="donationForm">
+        <input type="text" id="giver" placeholder="Your Name" required>
+        <input type="text" id="amount" placeholder="Donation Amount (AUD)" required>
+        <button type="submit">Submit My Donation</button>
+    </form>
+</section>
+<section id="donations">
+    <h3>Existing Donations</h3>
+    <ul id="donationsList"></ul>
+</section>
+
+
+
+<script>
+    // Get the fundraiser ID from the URL parameters
+    const id = new URLSearchParams(window.location.search).get('id');
+    let curr = ''; // Declare curr in the outer scope
+
+    // Fetch the fundraiser details and associated donations
+    fetch(`https://24274481.it.scu.edu.au/fundraiser/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            const fundraiser = data; // Directly access fundraiser data
+            const donations = fundraiser.DONATIONS || []; // Safely access donations data
+            curr = fundraiser.ORGANIZER; // Assign the organizer name to curr
+
+            // Display fundraiser details
+            const status = fundraiser.ACTIVE ? 'Active' : 'Inactive';
+            document.getElementById('fundraiserDetail').innerHTML = `
+            <h2>${fundraiser.CAPTION}</h2>
+            <p>Organizer: ${fundraiser.ORGANIZER}</p>
+            <p>Target Funding: ${fundraiser.TARGET_FUNDING} AUD</p>
+            <p>Current Funding: ${fundraiser.CURRENT_FUNDING} AUD</p>
+            <p>City: ${fundraiser.CITY}</p>
+            <p>Status: ${status}</p>
+            <p>Category: ${fundraiser.CATEGORY_NAME}</p>
+            <p>Coding by: zyao12 tyang15</p>
+        `;
+
+            // Display donations list
+            const donationsList = document.getElementById('donationsList');
+            donationsList.innerHTML = ''; // Clear the list before adding new items
+            donations.forEach(donation => {
+                const item = document.createElement('li');
+                item.innerHTML = `
+                <p><strong>Donor:</strong> ${donation.DONATION_GIVER}</p>
+                <p><strong>Amount:</strong> ${donation.DONATION_AMOUNT} AUD</p>
+                <p><strong>Date:</strong> ${new Date(donation.DONATION_DATE).toLocaleDateString()}</p>
+            `;
+                donationsList.appendChild(item);
+            });
+        })
+        .catch(err => console.error('Error fetching fundraiser details:', err));
+
+    // Handle form submission
+    document.getElementById('donationForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const giver = document.getElementById('giver').value;
+        const amount = document.getElementById('amount').value;
+        const decimalRegex = /^\d+(\.\d{1,2})?$/; // Regex to check for valid number or decimal up to 2 places
+
+        if (!decimalRegex.test(amount) || amount < 5) {
+            alert('Please enter a valid amount (minimum 5 AUD, numbers and decimals allowed up to 2 decimal places).');
+            return;
+        }
+
+        // Prepare donation data to send
+        const donationData = {
+            fundraiser_id: id,  // The fundraiser ID from the URL
+            giver: giver,       // The giver's name from the form
+            amount: parseFloat(amount)  // Parse as a float to ensure correct decimal handling
+        };
+
+        // Submit donation
+        fetch('https://24274481.it.scu.edu.au/donation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(donationData)
+        })
+            .then(response => response.json())
+            .then(result => {
+                alert(`Thank you for your donation to ${curr}`); // Use curr correctly
+                window.location.href = `fundraiser.html?id=${id}`; // Redirect to fundraiser page
+            })
+            .catch(err => console.error('Error submitting donation:', err));
+    });
+
+</script>
+
+</body>
+</html>
