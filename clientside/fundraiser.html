@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fundraiser Details</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 15px; }
+        header { text-align: center; margin-bottom: 14px; }
+        nav a { margin: 0 13px; }
+        section { margin-top: 20px; }
+        h2 { color: #007bff; }
+        #donationsList { list-style-type: none; padding: 0; }
+        #donationsList li { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Fundraiser Details Page</h1>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="search.html">Search Fundraisers</a>
+    </nav>
+</header>
+
+<section id="fundraiserDetail"></section>
+<section id="donations">
+    <h3>Donations</h3>
+    <ul id="donationsList"></ul>
+</section>
+
+<script>
+    const id = new URLSearchParams(window.location.search).get('id');
+
+    fetch(`https://24274481.it.scu.edu.au/fundraiser/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            const fundraiser = data;
+            const donations = fundraiser.DONATIONS;
+
+            const status = fundraiser.ACTIVE ? 'Active' : 'Inactive';
+            document.getElementById('fundraiserDetail').innerHTML = `
+                <h2>${fundraiser.CAPTION}</h2>
+                <p>Organizer: ${fundraiser.ORGANIZER}</p>
+                <p>Target Funding: ${fundraiser.TARGET_FUNDING} AUD</p>
+                <p>Current Funding: ${fundraiser.CURRENT_FUNDING} AUD</p>
+                <p>City: ${fundraiser.CITY}</p>
+                <p>Status: ${status}</p>
+                <p>Category: ${fundraiser.CATEGORY_NAME}</p>
+                <button onclick="redirectToDonationPage(${fundraiser.FUNDRAISER_ID})">Donate</button>
+                <p>Coding by: zyao12 tyang15</p>
+            `;
+
+            const donationsList = document.getElementById('donationsList');
+            if (donations && donations.length > 0) {
+                const validDonations = donations.filter(donation => donation.DONATION_ID !== null);
+                if (validDonations.length > 0) {
+                    validDonations.forEach(donation => {
+                        const item = document.createElement('li');
+                        item.innerHTML = `
+                            <p><strong>Donor:</strong> ${donation.DONATION_GIVER}</p>
+                            <p><strong>Amount:</strong> ${donation.DONATION_AMOUNT} AUD</p>
+                            <p><strong>Date:</strong> ${new Date(donation.DONATION_DATE).toLocaleDateString()}</p>
+                        `;
+                        donationsList.appendChild(item);
+                    });
+                } else {
+                    donationsList.innerHTML = '<li>No valid donations yet.</li>';
+                }
+            } else {
+                donationsList.innerHTML = '<li>No donations yet.</li>';
+            }
+        })
+        .catch(err => console.error('Error fetching fundraiser details:', err));
+
+    function redirectToDonationPage(fundraiserId) {
+        window.location.href = `donation.html?id=${fundraiserId}`;
+    }
+</script>
+</body>
+</html>

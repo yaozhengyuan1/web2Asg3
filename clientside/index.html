@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 15px; }
+        header { text-align: center; margin-bottom: 14px; }
+        nav a { margin: 0 13px; }
+        #username { font-weight: bold; color: rgba(0, 123, 255, 0.95); }
+        #organizationInfo { margin-bottom: 20px; }
+        #fundraisers { margin-top: 20px; }
+        #fundraiserList { list-style-type: none; padding: 0; }
+        #fundraiserList li { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Welcome to the Non-Profit Donation Organization</h1>
+    <p>We are waiting for your help</p>
+    <p>Coding by: <span id="username">zyao12 tyang15</span></p>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="search.html">Search Fundraisers</a>
+    </nav>
+</header>
+
+<section id="fundraisers">
+    <h2>Active Fundraisers</h2>
+    <ul id="fundraiserList"></ul>
+</section>
+
+<script>
+    // Fetch fundraisers and their categories from the API
+    fetch('https://24274481.it.scu.edu.au/fundraisers')
+        .then(response => response.json())
+        .then(data => {
+            const list = document.getElementById('fundraiserList');
+            data.forEach(fundraiser => {
+                const item = document.createElement('li');
+                const status = fundraiser.ACTIVE ? 'Active' : 'Inactive';
+
+                item.innerHTML = `
+                    <strong>${fundraiser.CAPTION}</strong><br>
+                    Organizer: ${fundraiser.ORGANIZER}<br>
+                    Target Funding: ${fundraiser.TARGET_FUNDING} AUD<br>
+                    Current Funding: ${fundraiser.CURRENT_FUNDING} AUD<br>
+                    City: ${fundraiser.CITY}<br>
+                    Status: ${status}<br>
+                    Category: ${fundraiser.CATEGORY_NAME}<br>
+                    <a href="fundraiser.html?id=${fundraiser.FUNDRAISER_ID}">View Details</a>
+                `;
+                list.appendChild(item);
+            });
+        })
+        .catch(err => console.error('Error fetching fundraisers:', err));
+
+</script>
+</body>
+</html>
